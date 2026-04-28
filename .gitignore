@@ -1,0 +1,4 @@
+data/
+headways.duckdb
+__pycache__/
+*.pyc
