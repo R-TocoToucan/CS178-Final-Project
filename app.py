@@ -1,5 +1,5 @@
 import duckdb
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -14,11 +14,15 @@ def query(sql, params=None):
     return result
 
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 # 1. Headway distribution by branch
 @app.route("/api/distribution")
 def distribution():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
-    day_type = request.args.get("day_type", "all")  # all | weekday | weekend
+    day_type = request.args.get("day_type", "all")
 
     where = ["headway_branch_seconds IS NOT NULL"]
     if exclude_terminal:
@@ -42,7 +46,6 @@ def distribution():
         ORDER BY branch_route_id
     """
     return jsonify(query(sql).to_dict(orient="records"))
-
 
 # 2. GLX vs Green-E comparison
 @app.route("/api/glx_comparison")
@@ -79,7 +82,6 @@ def glx_comparison():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-
 # 3. Hour-of-day breakdown
 @app.route("/api/by_hour")
 def by_hour():
@@ -108,7 +110,6 @@ def by_hour():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-
 # 4. Missingness by stop
 @app.route("/api/missingness")
 def missingness():
@@ -124,11 +125,12 @@ def missingness():
         FROM headways_enriched
         WHERE branch_route_id = '{branch}'
         GROUP BY stop_name, parent_station, is_terminal
+        HAVING COUNT(*) >= 1000
         ORDER BY null_pct DESC
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-# 5. Direction toggle 
+# 5. Direction toggle
 @app.route("/api/by_direction")
 def by_direction():
     branch = request.args.get("branch", "Green-E")
@@ -157,7 +159,6 @@ def by_direction():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-
 # 6. Long-gap event browser
 @app.route("/api/long_gaps")
 def long_gaps():
@@ -185,7 +186,6 @@ def long_gaps():
         LIMIT {limit}
     """
     return jsonify(query(sql).to_dict(orient="records"))
-
 
 # 7. Month-by-month trend
 @app.route("/api/by_month")
@@ -221,7 +221,6 @@ def by_month():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-
 # 8. Effective headway cross-line
 @app.route("/api/cross_line")
 def cross_line():
@@ -249,9 +248,5 @@ def cross_line():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
-
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
-
-
-    
