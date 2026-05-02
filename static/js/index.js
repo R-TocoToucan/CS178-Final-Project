@@ -44,8 +44,8 @@ function qs(params) {
 function drawDistribution(data) {
   const el = document.getElementById("chart-distribution");
   const W = el.parentElement.clientWidth - 40;
-  const H = 260;
-  const margin = { top: 28, right: 20, bottom: 50, left: 55 };
+  const H = 280;
+  const margin = { top: 16, right: 110, bottom: 50, left: 65 };
   const w = W - margin.left - margin.right;
   const h = H - margin.top - margin.bottom;
 
@@ -69,17 +69,15 @@ function drawDistribution(data) {
     .call(g => g.selectAll(".tick line").attr("stroke", "#e5e7eb"))
     .selectAll("text").attr("font-family", "DM Mono").attr("font-size", "10px");
 
-  // Gridlines
   svg.append("g").attr("class", "grid")
     .call(d3.axisLeft(y).ticks(5).tickSize(-w).tickFormat(""))
     .call(g => g.select(".domain").remove())
     .call(g => g.selectAll(".tick line").attr("stroke", "#f0f0f0").attr("stroke-width", 1));
 
-  // Y axis label
   svg.append("text")
     .attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
-    .attr("x", -h / 2).attr("y", -44)
+    .attr("x", -h / 2).attr("y", -52)
     .attr("text-anchor", "middle")
     .text("Headway (minutes)");
 
@@ -89,7 +87,6 @@ function drawDistribution(data) {
     const cx = x(d.branch_route_id) + bw / 2;
     const isGreen = d.branch_route_id.startsWith("Green");
 
-    // IQR box
     svg.append("rect")
       .attr("x", x(d.branch_route_id))
       .attr("y", y(d.q3))
@@ -108,14 +105,12 @@ function drawDistribution(data) {
          Long gap: ${d.long_gap_pct.toFixed(1)}%`, event))
       .on("mouseleave", hideTooltip);
 
-    // Median line
     svg.append("line")
       .attr("x1", x(d.branch_route_id)).attr("x2", x(d.branch_route_id) + bw)
       .attr("y1", y(d.median)).attr("y2", y(d.median))
       .attr("stroke", isGreen ? "#1b7a3e" : "#2c5f8a")
       .attr("stroke-width", 2.5);
 
-    // Mean dot
     svg.append("circle")
       .attr("cx", cx).attr("cy", y(d.mean))
       .attr("r", 4).attr("fill", "#e74c3c")
@@ -124,7 +119,6 @@ function drawDistribution(data) {
         `<b>${d.branch_route_id}</b><br>Mean: ${d.mean.toFixed(2)} min`, event))
       .on("mouseleave", hideTooltip);
 
-    // Long gap % label
     svg.append("text")
       .attr("x", cx).attr("y", y(d.q3) - 6)
       .attr("text-anchor", "middle")
@@ -135,32 +129,34 @@ function drawDistribution(data) {
   });
 
   // Legend
-  const leg = svg.append("g").attr("transform", `translate(${w - 100}, 0)`);
+  const leg = svg.append("g").attr("transform", `translate(${w + 12}, 20)`);
   [
     ["IQR box", "#a8d5b5", "rect"],
     ["Median", "#1b7a3e", "line"],
     ["Mean", "#e74c3c", "dot"],
   ].forEach(([label, color, type], i) => {
     if (type === "rect") {
-      leg.append("rect").attr("x", 0).attr("y", i * 18).attr("width", 12).attr("height", 12)
+      leg.append("rect").attr("x", 0).attr("y", i * 20).attr("width", 12).attr("height", 12)
         .attr("fill", color).attr("rx", 2);
     } else if (type === "line") {
-      leg.append("line").attr("x1", 0).attr("x2", 12).attr("y1", i * 18 + 6).attr("y2", i * 18 + 6)
+      leg.append("line").attr("x1", 0).attr("x2", 12)
+        .attr("y1", i * 20 + 6).attr("y2", i * 20 + 6)
         .attr("stroke", color).attr("stroke-width", 2.5);
     } else {
-      leg.append("circle").attr("cx", 6).attr("cy", i * 18 + 6).attr("r", 4).attr("fill", color);
+      leg.append("circle").attr("cx", 6).attr("cy", i * 20 + 6).attr("r", 4).attr("fill", color);
     }
-    leg.append("text").attr("x", 16).attr("y", i * 18 + 10)
+    leg.append("text").attr("x", 16).attr("y", i * 20 + 10)
       .attr("font-size", "10px").attr("font-family", "DM Sans").text(label);
   });
 }
+
 
 // Chart 2: GLX vs Green-E comparison
 function drawGLX(data) {
   const el = document.getElementById("chart-glx");
   const W = el.parentElement.clientWidth - 40;
-  const H = 260;
-  const margin = { top: 28, right: 20, bottom: 50, left: 55 };
+  const H = 280;
+  const margin = { top: 16, right: 150, bottom: 50, left: 55 };
   const w = W - margin.left - margin.right;
   const h = H - margin.top - margin.bottom;
 
@@ -191,13 +187,11 @@ function drawGLX(data) {
     .call(g => g.selectAll(".tick line").attr("stroke", "#e5e7eb"))
     .selectAll("text").attr("font-family", "DM Mono").attr("font-size", "10px");
 
-  // Gridlines
   svg.append("g").attr("class", "grid")
     .call(d3.axisLeft(y).ticks(5).tickSize(-w).tickFormat(""))
     .call(g => g.select(".domain").remove())
     .call(g => g.selectAll(".tick line").attr("stroke", "#f0f0f0"));
 
-  // Y axis label
   svg.append("text")
     .attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
@@ -221,35 +215,21 @@ function drawGLX(data) {
     });
   });
 
-  // Annotation: GLX shows lower variance
-  const glx = data.find(d => d.group === "GLX");
-  const nonglx = data.find(d => d.group === "Green-E (non-GLX)");
-  if (glx && nonglx && glx.stddev < nonglx.stddev) {
-    const annotX = x0("Std Dev") + x0.bandwidth() / 2;
-    const annotY = y(Math.max(glx.stddev, nonglx.stddev)) - 8;
-    svg.append("text")
-      .attr("class", "chart-annotation")
-      .attr("x", annotX).attr("y", annotY)
-      .attr("text-anchor", "middle")
-      .text("GLX more consistent");
-  }
-
   // Legend
-  const leg = svg.append("g").attr("transform", `translate(${w - 130}, 0)`);
+  const leg = svg.append("g").attr("transform", `translate(${w + 12}, 20)`);
   groups.forEach((g, i) => {
-    leg.append("rect").attr("x", 0).attr("y", i * 18).attr("width", 12).attr("height", 12)
+    leg.append("rect").attr("x", 0).attr("y", i * 20).attr("width", 12).attr("height", 12)
       .attr("fill", colors[g]).attr("rx", 2);
-    leg.append("text").attr("x", 16).attr("y", i * 18 + 10)
+    leg.append("text").attr("x", 16).attr("y", i * 20 + 10)
       .attr("font-size", "10px").attr("font-family", "DM Sans").text(g);
   });
 }
-
 // Chart 3: Hour-of-day line chart
 function drawHour(data) {
   const el = document.getElementById("chart-hour");
   const W = el.parentElement.clientWidth - 40;
   const H = 260;
-  const margin = { top: 20, right: 20, bottom: 50, left: 55 };
+  const margin = { top: 20, right: 110, bottom: 50, left: 70 };
   const w = W - margin.left - margin.right;
   const h = H - margin.top - margin.bottom;
 
@@ -288,7 +268,7 @@ function drawHour(data) {
 
   svg.append("text").attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
-    .attr("x", -h / 2).attr("y", -44)
+    .attr("x", -h / 2).attr("y", -58)
     .attr("text-anchor", "middle").text("Headway (minutes)");
 
   // Mean area fill
@@ -334,7 +314,7 @@ function drawHour(data) {
     .on("mouseleave", () => { focus.style("display", "none"); hideTooltip(); });
 
   // Legend
-  const leg = svg.append("g").attr("transform", `translate(${w - 90}, 0)`);
+  const leg = svg.append("g").attr("transform", `translate(${w + 12}, 20)`);
   [["Mean", "#1b7a3e", ""], ["Median", "#1b7a3e", "4,3"]].forEach(([label, color, dash], i) => {
     leg.append("line").attr("x1", 0).attr("x2", 18).attr("y1", i * 18 + 6).attr("y2", i * 18 + 6)
       .attr("stroke", color).attr("stroke-width", 2).attr("stroke-dasharray", dash);

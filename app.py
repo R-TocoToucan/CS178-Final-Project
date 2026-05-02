@@ -18,17 +18,21 @@ def query(sql, params=None):
 def index():
     return render_template("index.html")
 
+
 # 1. Headway distribution by branch
 @app.route("/api/distribution")
 def distribution():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     day_type = request.args.get("day_type", "all")
+    direction = request.args.get("direction", "all")
 
     where = ["headway_branch_seconds IS NOT NULL"]
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
         where.append(f"day_type = '{day_type}'")
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -47,11 +51,13 @@ def distribution():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 2. GLX vs Green-E comparison
 @app.route("/api/glx_comparison")
 def glx_comparison():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     day_type = request.args.get("day_type", "all")
+    direction = request.args.get("direction", "all")
 
     where = ["headway_branch_seconds IS NOT NULL",
              "branch_route_id = 'Green-E'"]
@@ -59,6 +65,8 @@ def glx_comparison():
         where.append("is_terminal = false")
     if day_type != "all":
         where.append(f"day_type = '{day_type}'")
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -82,12 +90,14 @@ def glx_comparison():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 3. Hour-of-day breakdown
 @app.route("/api/by_hour")
 def by_hour():
     branch = request.args.get("branch", "Green-E")
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     day_type = request.args.get("day_type", "all")
+    direction = request.args.get("direction", "all")
 
     where = ["headway_branch_seconds IS NOT NULL",
              "hour_of_day IS NOT NULL",
@@ -96,6 +106,8 @@ def by_hour():
         where.append("is_terminal = false")
     if day_type != "all":
         where.append(f"day_type = '{day_type}'")
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -110,10 +122,16 @@ def by_hour():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 4. Missingness by stop
 @app.route("/api/missingness")
 def missingness():
     branch = request.args.get("branch", "Green-E")
+    direction = request.args.get("direction", "all")
+
+    where = [f"branch_route_id = '{branch}'"]
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -123,12 +141,13 @@ def missingness():
             COUNT(*) FILTER (WHERE headway_branch_seconds IS NULL) * 100.0 / COUNT(*) AS null_pct,
             is_terminal
         FROM headways_enriched
-        WHERE branch_route_id = '{branch}'
+        WHERE {" AND ".join(where)}
         GROUP BY stop_name, parent_station, is_terminal
-        HAVING COUNT(*) >= 1000
+        HAVING COUNT(*) >= 500
         ORDER BY null_pct DESC
     """
     return jsonify(query(sql).to_dict(orient="records"))
+
 
 # 5. Direction toggle
 @app.route("/api/by_direction")
@@ -159,6 +178,7 @@ def by_direction():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 6. Long-gap event browser
 @app.route("/api/long_gaps")
 def long_gaps():
@@ -187,17 +207,21 @@ def long_gaps():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 7. Month-by-month trend
 @app.route("/api/by_month")
 def by_month():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     day_type = request.args.get("day_type", "all")
+    direction = request.args.get("direction", "all")
 
     where = ["headway_branch_seconds IS NOT NULL"]
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
         where.append(f"day_type = '{day_type}'")
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -221,17 +245,21 @@ def by_month():
     """
     return jsonify(query(sql).to_dict(orient="records"))
 
+
 # 8. Effective headway cross-line
 @app.route("/api/cross_line")
 def cross_line():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     day_type = request.args.get("day_type", "all")
+    direction = request.args.get("direction", "all")
 
     where = ["headway_trunk_seconds IS NOT NULL"]
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
         where.append(f"day_type = '{day_type}'")
+    if direction != "all":
+        where.append(f"direction = '{direction}'")
 
     sql = f"""
         SELECT
@@ -247,6 +275,7 @@ def cross_line():
         ORDER BY trunk_route_id
     """
     return jsonify(query(sql).to_dict(orient="records"))
+
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
