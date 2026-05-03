@@ -179,6 +179,10 @@ body {
   border: 1px solid var(--border);
 }
 
+.chart-card.full-width {
+  grid-column: 1 / -1;
+}
+
 .chart-card h3 {
   font-size: 13px;
   font-weight: 700;
@@ -207,7 +211,7 @@ svg {
 /* Missingness table */
 #table-missingness {
   overflow-y: auto;
-  max-height: 300px;
+  max-height: 280px;
 }
 
 table {
@@ -278,14 +282,12 @@ tr.glx-stop td {
   font-size: 9px;
 }
 
-/* GLX label */
 .glx-label {
   color: var(--green-dark);
   font-weight: 700;
   font-size: 11px;
 }
 
-/* Table footnote */
 .table-footnote {
   margin-top: 8px;
   font-size: 11px;
@@ -309,16 +311,9 @@ tr.glx-stop td {
   transition: opacity 0.15s;
   z-index: 1000;
   line-height: 1.6;
-  max-width: 200px;
+  max-width: 220px;
 }
 
 #tooltip.visible {
   opacity: 1;
-}
-
-/* Chart annotation */
-.chart-annotation {
-  font-size: 10px;
-  fill: var(--text-muted);
-  font-style: italic;
 }

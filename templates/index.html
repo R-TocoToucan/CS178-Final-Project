@@ -46,16 +46,6 @@
         </select>
       </div>
 
-      <div class="control-group">
-        <label>Branch (Hour Chart)</label>
-        <select id="branch">
-          <option value="Green-E">Green-E</option>
-          <option value="Green-B">Green-B</option>
-          <option value="Green-C">Green-C</option>
-          <option value="Green-D">Green-D</option>
-        </select>
-      </div>
-
       <div class="control-group checkbox">
         <input type="checkbox" id="exclude-terminal" />
         <label for="exclude-terminal">Exclude Terminal Stops</label>
@@ -67,26 +57,26 @@
     <!-- Main content -->
     <div id="main">
 
-      <div class="chart-card" id="card-distribution">
-        <h3>Headway Distribution by Branch</h3>
-        <p class="subtitle">Box plot of branch headways &mdash; median, IQR, mean (red dot), long-gap % above</p>
-        <svg id="chart-distribution"></svg>
-      </div>
-
-      <div class="chart-card" id="card-glx">
-        <h3>GLX vs Green-E Comparison</h3>
-        <p class="subtitle">Intermediate GLX stops vs non-GLX Green-E stops across key metrics</p>
-        <svg id="chart-glx"></svg>
+      <div class="chart-card full-width" id="card-network">
+        <h3>GLX vs Network — Headway Distribution</h3>
+        <p class="subtitle">Box plot comparing GLX stops against all reference groups &mdash; branch headway for Green lines, trunk headway for Orange/Blue/Red</p>
+        <svg id="chart-network"></svg>
       </div>
 
       <div class="chart-card" id="card-hour">
-        <h3>Hour-of-Day Breakdown</h3>
-        <p class="subtitle">Average and median headway by hour for selected branch</p>
+        <h3>Hour-of-Day: GLX vs Green-E</h3>
+        <p class="subtitle">Mean headway by hour — does GLX diverge from Green-E at peak times?</p>
         <svg id="chart-hour"></svg>
       </div>
 
-      <div class="chart-card" id="card-missingness">
-        <h3>Missingness by Stop</h3>
+      <div class="chart-card" id="card-month">
+        <h3>Monthly Trend: Median Headway by Line Group</h3>
+        <p class="subtitle">How does GLX headway evolve across 2025 compared to other lines?</p>
+        <svg id="chart-month"></svg>
+      </div>
+      
+      <div class="chart-card full-width" id="card-missingness">
+        <h3>Missingness by Stop (Green-E)</h3>
         <p class="subtitle">% null branch-headway per stop &mdash; high values at terminals are structural, not performance</p>
         <div id="table-missingness"></div>
         <p class="table-footnote">
