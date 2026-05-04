@@ -1,4 +1,6 @@
-data/
+data/*.csv
 headways.duckdb
+_mbta_download_temp/
 __pycache__/
 *.pyc
+~$*
