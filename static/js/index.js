@@ -219,6 +219,21 @@ function drawHour(data) {
       .attr("font-size", "10px").attr("font-family", "DM Sans")
       .attr("fill", "#374151").text(grp);
   });
+  
+  svg.append("rect")
+    .attr("width", w).attr("height", h)
+    .attr("fill", "none").attr("pointer-events", "all")
+    .on("mousemove", function(event) {
+      const xVal = Math.round(x.invert(d3.pointer(event)[0]));
+      const glxD = data.find(r => r.hour_of_day === xVal && r.group === "GLX");
+      const nonD = data.find(r => r.hour_of_day === xVal && r.group === "Green-E (non-GLX)");
+      if (!glxD || !nonD) return;
+      showTooltip(
+        `<b>${xVal}:00</b><br>
+         GLX: ${glxD.mean_headway.toFixed(1)} min<br>
+         Green-E: ${nonD.mean_headway.toFixed(1)} min`, event);
+    })
+    .on("mouseleave", hideTooltip);
 }
 
 // Chart 3: Monthly trend — all line groups
