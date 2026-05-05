@@ -42,6 +42,7 @@ HEADWAY_CASE = f"""
     END
 """
 
+
 def query(sql, params=None):
     con = duckdb.connect(DB, read_only=True)
     result = con.execute(sql, params or []).df()
@@ -61,8 +62,11 @@ def network_comparison():
     day_type = request.args.get("day_type", "all")
     direction = request.args.get("direction", "all")
 
-    where = [f"({HEADWAY_CASE}) IS NOT NULL",
-             f"({GROUP_CASE}) IS NOT NULL"]
+    where = [
+        f"({HEADWAY_CASE}) IS NOT NULL",
+        f"({GROUP_CASE}) IS NOT NULL"
+    ]
+
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
@@ -94,6 +98,7 @@ def network_comparison():
                 WHEN 'Mattapan' THEN 7
             END
     """
+
     return jsonify(query(sql).to_dict(orient="records"))
 
 
@@ -104,9 +109,12 @@ def by_hour():
     day_type = request.args.get("day_type", "all")
     direction = request.args.get("direction", "all")
 
-    where = ["headway_branch_seconds IS NOT NULL",
-             "hour_of_day IS NOT NULL",
-             "branch_route_id = 'Green-E'"]
+    where = [
+        "headway_branch_seconds IS NOT NULL",
+        "hour_of_day IS NOT NULL",
+        "branch_route_id = 'Green-E'"
+    ]
+
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
@@ -129,6 +137,7 @@ def by_hour():
         GROUP BY hour_of_day, 2
         ORDER BY hour_of_day, 2
     """
+
     return jsonify(query(sql).to_dict(orient="records"))
 
 
@@ -138,8 +147,11 @@ def by_daytype():
     exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
     direction = request.args.get("direction", "all")
 
-    where = ["headway_branch_seconds IS NOT NULL",
-             "branch_route_id = 'Green-E'"]
+    where = [
+        "headway_branch_seconds IS NOT NULL",
+        "branch_route_id = 'Green-E'"
+    ]
+
     if exclude_terminal:
         where.append("is_terminal = false")
     if direction != "all":
@@ -161,15 +173,23 @@ def by_daytype():
         GROUP BY day_type, 2
         ORDER BY day_type, 2
     """
+
     return jsonify(query(sql).to_dict(orient="records"))
 
 
 # 4. Missingness by stop (Green-E only)
 @app.route("/api/missingness")
 def missingness():
+    exclude_terminal = request.args.get("exclude_terminal", "false") == "true"
+    day_type = request.args.get("day_type", "all")
     direction = request.args.get("direction", "all")
 
     where = ["branch_route_id = 'Green-E'"]
+
+    if exclude_terminal:
+        where.append("is_terminal = false")
+    if day_type != "all":
+        where.append(f"day_type = '{day_type}'")
     if direction != "all":
         where.append(f"direction = '{direction}'")
 
@@ -186,7 +206,9 @@ def missingness():
         HAVING COUNT(*) >= 500
         ORDER BY null_pct DESC
     """
+
     return jsonify(query(sql).to_dict(orient="records"))
+
 
 # 5. Monthly trend — all line groups
 @app.route("/api/by_month")
@@ -195,8 +217,11 @@ def by_month():
     day_type = request.args.get("day_type", "all")
     direction = request.args.get("direction", "all")
 
-    where = [f"({HEADWAY_CASE}) IS NOT NULL",
-             f"({GROUP_CASE}) IS NOT NULL"]
+    where = [
+        f"({HEADWAY_CASE}) IS NOT NULL",
+        f"({GROUP_CASE}) IS NOT NULL"
+    ]
+
     if exclude_terminal:
         where.append("is_terminal = false")
     if day_type != "all":
@@ -215,7 +240,9 @@ def by_month():
         GROUP BY month, 2
         ORDER BY month, 2
     """
+
     return jsonify(query(sql).to_dict(orient="records"))
+
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
