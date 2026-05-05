@@ -14,6 +14,11 @@ con.execute("""
         trip_id::VARCHAR                        AS trip_id,
         TRY_CAST(direction_id AS INTEGER)       AS direction_id,
         direction::VARCHAR                      AS direction,
+        CASE
+            WHEN direction IN ('West', 'South', 'Inbound') THEN 'Inbound'
+            WHEN direction IN ('East', 'North', 'Outbound') THEN 'Outbound'
+            ELSE NULL
+        END                                     AS direction_normalized,
         parent_station::VARCHAR                 AS parent_station,
         stop_id::VARCHAR                        AS stop_id,
         stop_name::VARCHAR                      AS stop_name,
